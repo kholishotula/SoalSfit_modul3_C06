@@ -95,6 +95,72 @@ f. Server pembeli akan mengirimkan info ke client yang terhubung dengannya apaka
 - Jika stok masih ada maka client yang terkoneksi ke server pembeli akan mencetak “transaksi berhasil”<br>
 g. Server penjual akan mencetak stok saat ini setiap 5 detik sekali<br>
 h. Menggunakan thread, socket, shared memory
+
+-Server Penjual<br>
+-untuk menambah stok gunakan :
+```
+while(1){
+    char buffer[1024] = {0};
+    valread = read( new_socket , buffer, 1024);
+    if(strcmp(buffer,"tambah")==0){
+        *value = *value+1;
+        printf("%d\n", *value);
+        
+    }
+```
+-untuk menampilkan stok tiap 5 detik, gunakan thread :
+```
+void* tampilstok (void* arg){
+key_t key = 1234;
+int *value; 
+int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+value = shmat(shmid, NULL, 0);
+while(1){
+    if(flag == 0)
+    break;
+    printf("stok : %d\n",*value);
+    sleep(5);
+}
+}
+```
+-Server Pembeli<br>
+-untuk mengurangi stok gunakan :
+```
+while(1){
+    char buffer[1024] = {0};
+    valread = read( new_socket , buffer, 1024);
+    if(strcmp(buffer,"beli")==0){
+        if(*value>0){
+            *value = *value - 1;
+            char *sukses = "Transaksi Berhasil\n";
+            send(new_socket , sukses , strlen(sukses) , 0 );
+        }
+        else{
+            char *gagal = "Transaksi Gagal\n";
+            send(new_socket , gagal , strlen(gagal) , 0 );
+        }
+    }
+```
+-kedua server menggunakan shared memory untuk variabel penyimpan jumlah stok barang :
+```
+key_t key = 1234;
+int *value;
+int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+value = shmat(shmid, NULL, 0);
+```
+
+-Client<br>
+-pilih akan connect ke server mana :
+```
+        printf("insert port : \n1.Penjual(8080)\n2.Pembeli(8081)\n");
+        int x; scanf("%d",&x);
+        PORT = x;
+```
+-sambungkan dengan server menggunakan thread :
+```
+        pthread_create(&thread1, NULL, konek, NULL);
+        pthread_join(thread1,NULL);
+```
     
 3. Agmal dan Iraj merupakan 2 sahabat yang sedang kuliah dan hidup satu kostan, sayangnya mereka mempunyai gaya hidup yang berkebalikan, dimana Iraj merupakan laki-laki yang sangat sehat,rajin berolahraga dan bangun tidak pernah kesiangan sedangkan Agmal hampir menghabiskan setengah umur hidupnya hanya untuk tidur dan ‘ngoding’. Dikarenakan mereka sahabat yang baik, Agmal dan iraj sama-sama ingin membuat satu sama lain mengikuti gaya hidup mereka dengan cara membuat Iraj sering tidur seperti Agmal, atau membuat Agmal selalu bangun pagi seperti Iraj. Buatlah suatu program C untuk menggambarkan kehidupan mereka dengan spesifikasi sebagai berikut:<br>
 a. Terdapat 2 karakter Agmal dan Iraj<br>
@@ -367,6 +433,7 @@ Choices<br>
 G. Pastikan terminal hanya mendisplay status detik ini sesuai scene terkait (hint: menggunakan system(“clear”))<br>
  
 Jawab : untuk melakukan pengurangan / penambahan status hunger, hygiene, health gunakan thread :
+```c
 void* regenHealth(void* arg){
 while(1){
     if(battle == 1){
@@ -402,7 +469,9 @@ while(1){
     sleep(10);
 }
 }
+```
 -lalu untuk menghitung cooldown bath gunakan thread juga :
+```c
 void* bathCD(void* arg){
 while(1){
     if(bathstatus==1){
@@ -413,20 +482,25 @@ while(1){
     sleep(1);
 }
 }
+```
 -setting semua variable lalu jalankan threadnya pada fungsi main() :
+```c
 pthread_t t1,t2,t3,t4;
 hunger = 200;
 hygiene = 100;
 health = 30;
 foodstock = 5;
 bathtime = 20; bathstatus = 0; *shopstock = 10;
+```
 -khusus untuk variable shopstock, yaitu jumlah stok makanan pada shop, gunakan shared memory :
+```c
 key_t key = 4321;
 int *shopstock;
 int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
 shopstock = shmat(shmid, NULL, 0);
+```
 -looping utama untuk menjalankan program/ kita inputkan pilihan
-
+```c
 while(1){
     char key; int k;
     key = getch();
@@ -530,12 +604,16 @@ while(1){
     }
 
 }
+```
 -untuk bagian input tanpa harus memencet enter :
+```c
     char key; int k;
     key = getch();
     k = key;
+```
 -karena pada linux tidak ada fungsi getch(), maka kita tulis manual fungsi getchnya (referensi dari internet) :
-char getch() {
+```c
+	char getch() {
         char buf = 0;
         struct termios old = {0};
         if (tcgetattr(0, &old) < 0)
@@ -554,3 +632,4 @@ char getch() {
                 perror ("tcsetattr ~ICANON");
         return (buf);
 }
+```

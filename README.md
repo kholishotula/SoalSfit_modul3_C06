@@ -94,11 +94,74 @@ f. Server pembeli akan mengirimkan info ke client yang terhubung dengannya apaka
 - Jika stok habis maka client yang terkoneksi ke server pembeli akan mencetak “transaksi gagal”<br>
 - Jika stok masih ada maka client yang terkoneksi ke server pembeli akan mencetak “transaksi berhasil”<br>
 g. Server penjual akan mencetak stok saat ini setiap 5 detik sekali<br>
-h. Menggunakan thread, socket, shared memory
--Server Penjual
-untuk menambah stok gunakan :
+h. Menggunakan thread, socket, shared memory<br>
+-Server Penjual<br>
+-untuk menambah stok gunakan :
+```
+while(1){
+    char buffer[1024] = {0};
+    valread = read( new_socket , buffer, 1024);
+    if(strcmp(buffer,"tambah")==0){
+        *value = *value+1;
+        printf("%d\n", *value);
+        
+    }
+```
+-untuk menampilkan stok tiap 5 detik, gunakan thread :
+```
+void* tampilstok (void* arg){
+key_t key = 1234;
+int *value; 
+
+int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+value = shmat(shmid, NULL, 0);
+while(1){
+    if(flag == 0)
+    break;
+
+    printf("stok : %d\n",*value);
+    sleep(5);
+}
+}
+```
+-Server Pembeli<br>
+-untuk mengurangi stok gunakan :
+```
+while(1){
+    char buffer[1024] = {0};
+    valread = read( new_socket , buffer, 1024);
+    if(strcmp(buffer,"beli")==0){
+        if(*value>0){
+            *value = *value - 1;
+            char *sukses = "Transaksi Berhasil\n";
+            send(new_socket , sukses , strlen(sukses) , 0 );
+        }
+        else{
+            char *gagal = "Transaksi Gagal\n";
+            send(new_socket , gagal , strlen(gagal) , 0 );
+        }
+    }
+```
+-kedua server menggunakan shared memory untuk variabel penyimpan jumlah stok barang :
+```
+key_t key = 1234;
+int *value;
+
+int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+value = shmat(shmid, NULL, 0);
 ```
 
+-Client<br>
+-pilih akan connect ke server mana :
+```
+        printf("insert port : \n1.Penjual(8080)\n2.Pembeli(8081)\n");
+        int x; scanf("%d",&x);
+        PORT = x;
+```
+-sambungkan dengan server menggunakan thread :
+```
+        pthread_create(&thread1, NULL, konek, NULL);
+        pthread_join(thread1,NULL);
 ```
 
     

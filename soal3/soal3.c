@@ -13,12 +13,13 @@ int count_sleep;
 void* All_Status(void *arg)
 {
 	while(1) {
-		while(cmd != 1){}
 
-		printf("Agmal WakeUp_Status = %d\n", WakeUp_Status);
-		printf("Iraj Spirit_Status = %d\n", Spirit_Status);
+		if(cmd==1) {
+			printf("Agmal WakeUp_Status = %d\n", WakeUp_Status);
+			printf("Iraj Spirit_Status = %d\n", Spirit_Status);
 
-		cmd = 0;
+			cmd = 0;
+		}
 	}
 }
 
@@ -30,11 +31,18 @@ void* Bangun(void *arg)
                         exit(EXIT_SUCCESS);
                 }
 
-		while(cmd != 2){}
+		if(cmd==2) {
+			if(count_sleep==3) {
+				printf("Fitur Agmal Ayo Bangun disabled 10 s\n");
+				count_sleep=0;
+				sleep(10);
+				continue;
+			}
+			count_wakeup+=1;
+			WakeUp_Status += 15;
 
-		WakeUp_Status += 15;
-
-		cmd = 0;
+			cmd = 0;
+		}
 	}
 }
 
@@ -46,11 +54,18 @@ void* Tidur(void *arg)
                         exit(EXIT_SUCCESS);
                 }
 
-		while(cmd != 3){}
+		if(cmd==3) {
+			if(count_wakeup==3) {
+	       	                printf("Fitur Iraj Ayo Tidur disabled 10 s\n");
+		       	        sleep(10);
+				count_wakeup=0;
+				continue;
+			}
+			count_sleep+=1;
+			Spirit_Status -= 20;
 
-		Spirit_Status -= 20;
-
-		cmd = 0;
+			cmd = 0;
+		}
 	}
 }
  
@@ -70,27 +85,15 @@ int main(void)
 
 	while(1)
 	{
-		gets(command);
+		fgets(command, 100, stdin);
 
-		if(strcmp(command, "All Status") == 0) {
+		if(strcmp(command, "All Status\n") == 0) {
 			cmd = 1;
 		}
-		else if(strcmp(command, "Agmal Ayo Bangun") == 0) {
-			if(count_sleep==3) {
-				printf("Fitur Agmal Ayo Bangun disabled 10 s\n");
-				sleep(10);
-				continue;
-			}
-			count_wakeup+=1;
+		else if(strcmp(command, "Agmal Ayo Bangun\n") == 0) {
                         cmd = 2;
                 }
-		else if(strcmp(command, "Iraj Ayo Tidur") == 0) {
-			if(count_wakeup==3) {
-        	                printf("Fitur Iraj Ayo Tidur disabled 10 s\n");
-                	        sleep(10);
-				continue;
-			}
-			count_sleep+=1;
+		else if(strcmp(command, "Iraj Ayo Tidur\n") == 0) {
                         cmd = 3;
                 }
 	}

@@ -95,6 +95,8 @@ f. Server pembeli akan mengirimkan info ke client yang terhubung dengannya apaka
 - Jika stok masih ada maka client yang terkoneksi ke server pembeli akan mencetak “transaksi berhasil”<br>
 g. Server penjual akan mencetak stok saat ini setiap 5 detik sekali<br>
 h. Menggunakan thread, socket, shared memory<br>
+Jawab :
+
 -Server Penjual<br>
 -untuk menambah stok gunakan :
 ```
@@ -328,3 +330,211 @@ Choices<br>
 2. Exit
 
 G. Pastikan terminal hanya mendisplay status detik ini sesuai scene terkait (hint: menggunakan system(“clear”))
+Jawab : 
+untuk melakukan pengurangan / penambahan status hunger, hygiene, health gunakan thread :
+```
+void* regenHealth(void* arg){
+while(1){
+    if(battle == 1){
+    }
+    else {
+        health+=5;
+    }
+    sleep(10);
+}
+}
+void* reduceHygiene(void* arg){
+while(1){
+    if(battle == 1){
+    }
+    else {
+        hygiene-=10;
+    }
+    sleep(30);
+}
+}
+void* reduceHunger(void* arg){
+while(1){
+    if(battle == 1){
+    }
+    else {
+        hunger-=5;
+        if(hunger == 0){
+            system("clear");
+            printf("Monster's hunger level is 0, you lose this game.\n");
+            exit(0);
+        }
+    }
+    sleep(10);
+}
+}
+```
+
+-lalu untuk menghitung cooldown bath gunakan thread juga : 
+```
+void* bathCD(void* arg){
+while(1){
+    if(bathstatus==1){
+        bathtime--;
+        if(bathtime == 0)
+        bathstatus = 0;
+    }
+    sleep(1);
+}
+}
+```
+-setting semua variable lalu jalankan threadnya pada fungsi main() :
+```
+pthread_t t1,t2,t3,t4;
+hunger = 200;
+hygiene = 100;
+health = 30;
+foodstock = 5;
+bathtime = 20; bathstatus = 0; *shopstock = 10;
+```
+-khusus untuk variable shopstock, yaitu jumlah stok makanan pada shop, gunakan shared memory : 
+```
+key_t key = 4321;
+int *shopstock;
+int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+shopstock = shmat(shmid, NULL, 0);
+```
+
+-looping utama untuk menjalankan program/ kita inputkan pilihan
+```
+
+while(1){
+    char key; int k;
+    key = getch();
+    k = key;
+    if(k == 49){
+        if(foodstock>0){
+            foodstock -=1;
+            hunger+=15;
+            system("clear");
+            showstandby();
+        }
+        else{
+            system("clear");
+            printf("Your food stock is 0!!\n");
+            sleep(1);
+            system("clear");
+            showstandby();
+        }
+    }
+    else if(k == 50){
+        if(bathstatus == 0){
+        bathtime = 20;
+        bathstatus = 1;
+        hygiene += 30;
+        system("clear");
+        showstandby();
+        }
+        else{
+        system("clear");
+        showstandby();
+        }
+    }
+    else if(k == 51){
+        battle = 1;
+        enemyhp = 100;
+        system("clear");
+        showbattle();
+        while(1){
+        key = getch();
+        k = key;
+        if(k == 49){
+            if(enemyhp == 0){
+                battle=0;
+                system("clear");
+                showstandby();
+                break;
+            }
+            enemyhp = enemyhp - myatt;
+            health = health - enemyatt;
+            system("clear");
+            showbattle();
+            if(health <= 0){
+                system("clear");
+                printf("Monster's health level is 0, you lose this game.\n");
+                exit(0);
+            }
+
+        }
+        else if(k == 50){
+            battle = 0;
+            system("clear");
+            showstandby();
+            break;
+        }
+        }
+    }
+    else if(k == 52){
+        system("clear");
+        showshop(*shopstock);
+        while(1){
+        key = getch();
+        k = key;
+        if(k == 49){
+            if(*shopstock == 0){
+                system("clear");
+                printf("Can't buy food, shop's food stock is 0!\n");
+                sleep(2);
+                system("clear");
+                showshop(*shopstock);
+            }
+            else{
+                foodstock+=1;
+                *shopstock-=1;
+                system("clear");
+                showshop(*shopstock);
+            }
+        }
+        else if(k == 50){
+            system("clear");
+            showstandby();
+            break;
+        }
+        }
+    }
+    else if(k == 53){
+        break;
+    }
+    else if(k == 54){
+        system("clear");
+        showstandby();
+    }
+
+}
+```
+
+-untuk bagian  input tanpa harus memencet enter :
+```
+    char key; int k;
+    key = getch();
+    k = key;
+```
+-karena pada linux tidak ada fungsi getch(), maka kita tulis manual fungsi getchnya (referensi dari internet) :
+```
+char getch() {
+        char buf = 0;
+        struct termios old = {0};
+        if (tcgetattr(0, &old) < 0)
+                perror("tcsetattr()");
+        old.c_lflag &= ~ICANON;
+        old.c_lflag &= ~ECHO;
+        old.c_cc[VMIN] = 1;
+        old.c_cc[VTIME] = 0;
+        if (tcsetattr(0, TCSANOW, &old) < 0)
+                perror("tcsetattr ICANON");
+        if (read(0, &buf, 1) < 0)
+                perror ("read()");
+        old.c_lflag |= ICANON;
+        old.c_lflag |= ECHO;
+        if (tcsetattr(0, TCSADRAIN, &old) < 0)
+                perror ("tcsetattr ~ICANON");
+        return (buf);
+}
+
+
+```

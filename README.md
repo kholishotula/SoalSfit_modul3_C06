@@ -9,7 +9,78 @@ Contoh:<br>
     3! = 6<br>
     4! = 24<br>
     5! = 120<br>
+    
+Langkah-langkah :<br>
+- Menyimpan jumlah argumen ke variabel argc, dan menyimpan argumennya dalam bentuk array ke variabel argv[]
+- Membuat array of integer untuk menyimpan nilai argumen
+```c
+int num[size];
+for(i=1;i<size;i++) {
+	num[i] = atoi(argv[i]);
+}
+```
+- Menyortir array num dari nilai kecil ke besar menggunakan bubble sort
+```c
+void sort (int A[], int n)
+{
+	int a, i, j;
+	for (i = 1; i < n; ++i) 
+	{
+		for (j = i + 1; j < n; ++j)
+		{
+			if (A[i] > A[j]) 
+			{
+				a = A[i];
+				A[i] = A[j];
+				A[j] = a;
+			}
+		}
+	}
+}
+```
+dan memanggilnya dengan
+```c
+sort(num, size);
+```
+- Mengalokasikan array of thread sebesar jumlah argumen dan create thread tersebut dengan passing argumen angka dari array num dan menjalankan fungsi faktorial
+```c
+pthread_t tid[size];
 
+for(i=1;i<size;i++) {
+	pthread_create(&tid[i], NULL, faktorial, &num[i]);
+}
+```
+- Fungsi faktorial. hasil faktorial disimpan dalam array of integer dengan nama result
+```c
+void *faktorial(void *arg)
+{
+	int i, j;
+	int res;
+	int *num = (int*) arg;
+	res = 1;
+	for(i=2;i<=*num;i++) {
+		res*=i;
+	}
+	result[iter] = res;
+	iter++;
+}
+```
+- Jangan lupa thread nya dijoin
+```c
+for(i=1;i<size;i++) {
+	pthread_join(tid[i], NULL);
+}
+```
+- Menyortir array hasil faktorial
+```c
+sort(result, size);
+```
+- Menampilkan hasil faktorial
+```c
+for(i=1;i<size;i++) {
+		printf("%d! = %d\n", num[i], result[i]);
+	}
+```
 2. Pada suatu hari ada orang yang ingin berjualan 1 jenis barang secara private, dia memintamu membuat program C dengan spesifikasi sebagai berikut:<br>
 a. Terdapat 2 server: server penjual dan server pembeli<br>
 b. 1 server hanya bisa terkoneksi dengan 1 client<br>

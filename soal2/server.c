@@ -20,7 +20,7 @@ while(1){
     break;
 
     printf("stok : %d\n",*value);
-    sleep(3);
+    sleep(5);
 }
 }
 int main(int argc, char const *argv[]) {

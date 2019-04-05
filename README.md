@@ -94,78 +94,7 @@ f. Server pembeli akan mengirimkan info ke client yang terhubung dengannya apaka
 - Jika stok habis maka client yang terkoneksi ke server pembeli akan mencetak “transaksi gagal”<br>
 - Jika stok masih ada maka client yang terkoneksi ke server pembeli akan mencetak “transaksi berhasil”<br>
 g. Server penjual akan mencetak stok saat ini setiap 5 detik sekali<br>
-h. Menggunakan thread, socket, shared memory<br>
-Jawab :
-
--Server Penjual<br>
--untuk menambah stok gunakan :
-```
-while(1){
-    char buffer[1024] = {0};
-    valread = read( new_socket , buffer, 1024);
-    if(strcmp(buffer,"tambah")==0){
-        *value = *value+1;
-        printf("%d\n", *value);
-        
-    }
-```
--untuk menampilkan stok tiap 5 detik, gunakan thread :
-```
-void* tampilstok (void* arg){
-key_t key = 1234;
-int *value; 
-
-int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
-value = shmat(shmid, NULL, 0);
-while(1){
-    if(flag == 0)
-    break;
-
-    printf("stok : %d\n",*value);
-    sleep(5);
-}
-}
-```
--Server Pembeli<br>
--untuk mengurangi stok gunakan :
-```
-while(1){
-    char buffer[1024] = {0};
-    valread = read( new_socket , buffer, 1024);
-    if(strcmp(buffer,"beli")==0){
-        if(*value>0){
-            *value = *value - 1;
-            char *sukses = "Transaksi Berhasil\n";
-            send(new_socket , sukses , strlen(sukses) , 0 );
-        }
-        else{
-            char *gagal = "Transaksi Gagal\n";
-            send(new_socket , gagal , strlen(gagal) , 0 );
-        }
-    }
-```
--kedua server menggunakan shared memory untuk variabel penyimpan jumlah stok barang :
-```
-key_t key = 1234;
-int *value;
-
-int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
-value = shmat(shmid, NULL, 0);
-```
-
--Client<br>
--pilih akan connect ke server mana :
-```
-        printf("insert port : \n1.Penjual(8080)\n2.Pembeli(8081)\n");
-        int x; scanf("%d",&x);
-        PORT = x;
-```
--sambungkan dengan server menggunakan thread :
-```
-        pthread_create(&thread1, NULL, konek, NULL);
-        pthread_join(thread1,NULL);
-```
-
+h. Menggunakan thread, socket, shared memory
     
 3. Agmal dan Iraj merupakan 2 sahabat yang sedang kuliah dan hidup satu kostan, sayangnya mereka mempunyai gaya hidup yang berkebalikan, dimana Iraj merupakan laki-laki yang sangat sehat,rajin berolahraga dan bangun tidak pernah kesiangan sedangkan Agmal hampir menghabiskan setengah umur hidupnya hanya untuk tidur dan ‘ngoding’. Dikarenakan mereka sahabat yang baik, Agmal dan iraj sama-sama ingin membuat satu sama lain mengikuti gaya hidup mereka dengan cara membuat Iraj sering tidur seperti Agmal, atau membuat Agmal selalu bangun pagi seperti Iraj. Buatlah suatu program C untuk menggambarkan kehidupan mereka dengan spesifikasi sebagai berikut:<br>
 a. Terdapat 2 karakter Agmal dan Iraj<br>
@@ -187,8 +116,114 @@ b. Kedua karakter memiliki status yang unik
 - Syarat Menggunakan Lebih dari 1 Thread
 
 Langkah-langkah :<br>
-- 
+- Menginisialisasi variabel global. Variabel cmd digunakan sebagai mutex fungsi yang akan dieksekusi. Variabel count untuk menghitung jumlah perintah tersebut dipanggil
+```c
+int WakeUp_Status;
+int Spirit_Status;
+int cmd;
+int count_wakeup;
+int count_sleep;
+cmd = 0;
+WakeUp_Status = 0;
+Spirit_Status = 100;
+count_wakeup = 0;
+count_sleep = 0;
+```
+- Mengalokasikan thread dan create thread tersebut
+```c
+pthread_t tid1, tid2, tid3;
+pthread_create(&(tid1), NULL, All_Status, NULL);
+pthread_create(&(tid2), NULL, Bangun, NULL);
+pthread_create(&(tid3), NULL, Tidur, NULL);
+```
+dengan fungsi All_Status untuk menampilkan status masing-masing karakter
+```c
+void* All_Status(void *arg)
+{
+	while(1) {
+		while(cmd != 1){}
 
+		printf("Agmal WakeUp_Status = %d\n", WakeUp_Status);
+		printf("Iraj Spirit_Status = %d\n", Spirit_Status);
+
+		cmd = 0;
+	}
+}
+```
+fungsi Bangun untuk menambah WakeUp_Status dari Agmal
+```c
+void* Bangun(void *arg)
+{
+	while(1) {
+		if(WakeUp_Status >= 100) {
+                        printf("Agmal Terbangun, mereka bangun pagi dan berolahraga\n");
+                        exit(EXIT_SUCCESS);
+                }
+
+		while(cmd != 2){}
+
+		WakeUp_Status += 15;
+
+		cmd = 0;
+	}
+}
+```
+fungsi Tidur untuk mengurangi Spirit_Status dari Iraj
+```c
+void* Tidur(void *arg)
+{
+	while(1) {
+                if(Spirit_Status <= 0) {
+                        printf("Iraj ikut tidur, dan bangun kesiangan bersama Agmal\n");
+                        exit(EXIT_SUCCESS);
+                }
+
+		while(cmd != 3){}
+
+		Spirit_Status -= 20;
+
+		cmd = 0;
+	}
+}
+```
+- Membuat loop untuk mengeksekusi perintah. Kami menggunakan string compare untuk mengetahui perintah apa yang ingin dieksekusi, kemudian ubah nilai cmd supaya fungsi dapat dijalankan
+```c
+while(1)
+{
+	gets(command);
+
+	if(strcmp(command, "All Status") == 0) {
+		cmd = 1;
+	}
+	else if(strcmp(command, "Agmal Ayo Bangun") == 0) {
+		if(count_sleep==3) {
+			printf("Fitur Agmal Ayo Bangun disabled 10 s\n");
+			count_sleep=0;
+			sleep(10);
+			continue;
+		}
+		count_wakeup+=1;
+		cmd = 2;
+	}
+	else if(strcmp(command, "Iraj Ayo Tidur") == 0) {
+		if(count_wakeup==3) {
+       	                printf("Fitur Iraj Ayo Tidur disabled 10 s\n");
+			count_wakeup=0;
+               	        sleep(10);
+			continue;
+		}
+		count_sleep+=1;
+		cmd = 3;
+	}
+}
+```
+- Jangan lupa join kan thread nya
+```c
+pthread_join(tid1, NULL);
+pthread_join(tid2, NULL);
+pthread_join(tid3, NULL);
+```
+	
 4. Buatlah sebuah program C dimana dapat menyimpan list proses yang sedang berjalan (ps -aux) maksimal 10 list proses. Dimana awalnya list proses disimpan dalam di 2 file ekstensi .txt yaitu  SimpanProses1.txt di direktori /home/Document/FolderProses1 dan SimpanProses2.txt di direktori /home/Document/FolderProses2 , setelah itu masing2 file di  kompres zip dengan format nama file KompresProses1.zip dan KompresProses2.zip dan file SimpanProses1.txt dan SimpanProses2.txt akan otomatis terhapus, setelah itu program akan menunggu selama 15 detik lalu program akan mengekstrak kembali file KompresProses1.zip dan KompresProses2.zip <br>
 Dengan Syarat : <br>
 - Setiap list proses yang di simpan dalam masing-masing file .txt harus berjalan bersama-sama
@@ -330,211 +365,3 @@ Choices<br>
 2. Exit
 
 G. Pastikan terminal hanya mendisplay status detik ini sesuai scene terkait (hint: menggunakan system(“clear”))
-Jawab : 
-untuk melakukan pengurangan / penambahan status hunger, hygiene, health gunakan thread :
-```
-void* regenHealth(void* arg){
-while(1){
-    if(battle == 1){
-    }
-    else {
-        health+=5;
-    }
-    sleep(10);
-}
-}
-void* reduceHygiene(void* arg){
-while(1){
-    if(battle == 1){
-    }
-    else {
-        hygiene-=10;
-    }
-    sleep(30);
-}
-}
-void* reduceHunger(void* arg){
-while(1){
-    if(battle == 1){
-    }
-    else {
-        hunger-=5;
-        if(hunger == 0){
-            system("clear");
-            printf("Monster's hunger level is 0, you lose this game.\n");
-            exit(0);
-        }
-    }
-    sleep(10);
-}
-}
-```
-
--lalu untuk menghitung cooldown bath gunakan thread juga : 
-```
-void* bathCD(void* arg){
-while(1){
-    if(bathstatus==1){
-        bathtime--;
-        if(bathtime == 0)
-        bathstatus = 0;
-    }
-    sleep(1);
-}
-}
-```
--setting semua variable lalu jalankan threadnya pada fungsi main() :
-```
-pthread_t t1,t2,t3,t4;
-hunger = 200;
-hygiene = 100;
-health = 30;
-foodstock = 5;
-bathtime = 20; bathstatus = 0; *shopstock = 10;
-```
--khusus untuk variable shopstock, yaitu jumlah stok makanan pada shop, gunakan shared memory : 
-```
-key_t key = 4321;
-int *shopstock;
-int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
-shopstock = shmat(shmid, NULL, 0);
-```
-
--looping utama untuk menjalankan program/ kita inputkan pilihan
-```
-
-while(1){
-    char key; int k;
-    key = getch();
-    k = key;
-    if(k == 49){
-        if(foodstock>0){
-            foodstock -=1;
-            hunger+=15;
-            system("clear");
-            showstandby();
-        }
-        else{
-            system("clear");
-            printf("Your food stock is 0!!\n");
-            sleep(1);
-            system("clear");
-            showstandby();
-        }
-    }
-    else if(k == 50){
-        if(bathstatus == 0){
-        bathtime = 20;
-        bathstatus = 1;
-        hygiene += 30;
-        system("clear");
-        showstandby();
-        }
-        else{
-        system("clear");
-        showstandby();
-        }
-    }
-    else if(k == 51){
-        battle = 1;
-        enemyhp = 100;
-        system("clear");
-        showbattle();
-        while(1){
-        key = getch();
-        k = key;
-        if(k == 49){
-            if(enemyhp == 0){
-                battle=0;
-                system("clear");
-                showstandby();
-                break;
-            }
-            enemyhp = enemyhp - myatt;
-            health = health - enemyatt;
-            system("clear");
-            showbattle();
-            if(health <= 0){
-                system("clear");
-                printf("Monster's health level is 0, you lose this game.\n");
-                exit(0);
-            }
-
-        }
-        else if(k == 50){
-            battle = 0;
-            system("clear");
-            showstandby();
-            break;
-        }
-        }
-    }
-    else if(k == 52){
-        system("clear");
-        showshop(*shopstock);
-        while(1){
-        key = getch();
-        k = key;
-        if(k == 49){
-            if(*shopstock == 0){
-                system("clear");
-                printf("Can't buy food, shop's food stock is 0!\n");
-                sleep(2);
-                system("clear");
-                showshop(*shopstock);
-            }
-            else{
-                foodstock+=1;
-                *shopstock-=1;
-                system("clear");
-                showshop(*shopstock);
-            }
-        }
-        else if(k == 50){
-            system("clear");
-            showstandby();
-            break;
-        }
-        }
-    }
-    else if(k == 53){
-        break;
-    }
-    else if(k == 54){
-        system("clear");
-        showstandby();
-    }
-
-}
-```
-
--untuk bagian  input tanpa harus memencet enter :
-```
-    char key; int k;
-    key = getch();
-    k = key;
-```
--karena pada linux tidak ada fungsi getch(), maka kita tulis manual fungsi getchnya (referensi dari internet) :
-```
-char getch() {
-        char buf = 0;
-        struct termios old = {0};
-        if (tcgetattr(0, &old) < 0)
-                perror("tcsetattr()");
-        old.c_lflag &= ~ICANON;
-        old.c_lflag &= ~ECHO;
-        old.c_cc[VMIN] = 1;
-        old.c_cc[VTIME] = 0;
-        if (tcsetattr(0, TCSANOW, &old) < 0)
-                perror("tcsetattr ICANON");
-        if (read(0, &buf, 1) < 0)
-                perror ("read()");
-        old.c_lflag |= ICANON;
-        old.c_lflag |= ECHO;
-        if (tcsetattr(0, TCSADRAIN, &old) < 0)
-                perror ("tcsetattr ~ICANON");
-        return (buf);
-}
-
-
-```

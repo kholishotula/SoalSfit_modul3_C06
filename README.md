@@ -81,6 +81,7 @@ for(i=1;i<size;i++) {
 		printf("%d! = %d\n", num[i], result[i]);
 	}
 ```
+
 2. Pada suatu hari ada orang yang ingin berjualan 1 jenis barang secara private, dia memintamu membuat program C dengan spesifikasi sebagai berikut:<br>
 a. Terdapat 2 server: server penjual dan server pembeli<br>
 b. 1 server hanya bisa terkoneksi dengan 1 client<br>
@@ -101,18 +102,21 @@ b. Kedua karakter memiliki status yang unik
 - Agmal mempunyai WakeUp_Status, di awal program memiliki status 0
 - Iraj memiliki Spirit_Status, di awal program memiliki status 100
 - Terdapat 3 Fitur utama
-+ All Status, yaitu menampilkan status kedua sahabat
-Ex: Agmal WakeUp_Status = 75 <br>
-      Iraj Spirit_Status = 30
-+ “Agmal Ayo Bangun” menambah WakeUp_Status Agmal sebesar 15 point
-+ “Iraj Ayo Tidur” mengurangi Spirit_Status Iraj sebanyak 20 point
+	+ All Status, yaitu menampilkan status kedua sahabat<br>
+	Ex: Agmal WakeUp_Status = 75 <br>
+	Iraj Spirit_Status = 30
+	+ “Agmal Ayo Bangun” menambah WakeUp_Status Agmal sebesar 15 point
+	+ “Iraj Ayo Tidur” mengurangi Spirit_Status Iraj sebanyak 20 point
 - Terdapat Kasus yang unik dimana:
-+ Jika Fitur “Agmal Ayo Bangun” dijalankan sebanyak 3 kali, maka Fitur “Iraj Ayo Tidur” Tidak bisa dijalankan selama 10 detik (Dengan mengirim pesan ke sistem “Fitur Iraj Ayo Tidur disabled 10 s”)
-+ Jika Fitur  “Iraj Ayo Tidur” dijalankan sebanyak 3 kali, maka Fitur “Agmal Ayo Bangun” Tidak bisa dijalankan selama 10 detik (Dengan mengirim pesan ke sistem “Agmal Ayo Bangun disabled 10 s”)
+	+ Jika Fitur “Agmal Ayo Bangun” dijalankan sebanyak 3 kali, maka Fitur “Iraj Ayo Tidur” Tidak bisa dijalankan selama 10 detik (Dengan mengirim pesan ke sistem “Fitur Iraj Ayo Tidur disabled 10 s”)
+	+ Jika Fitur  “Iraj Ayo Tidur” dijalankan sebanyak 3 kali, maka Fitur “Agmal Ayo Bangun” Tidak bisa dijalankan selama 10 detik (Dengan mengirim pesan ke sistem “Agmal Ayo Bangun disabled 10 s”)
 - Program akan berhenti jika Salah Satu :
-+ WakeUp_Status Agmal >= 100 (Tampilkan Pesan “Agmal Terbangun,mereka bangun pagi dan berolahraga”)
-+ Spirit_Status Iraj <= 0 (Tampilkan Pesan “Iraj ikut tidur, dan bangun kesiangan bersama Agmal”)
+	+ WakeUp_Status Agmal >= 100 (Tampilkan Pesan “Agmal Terbangun,mereka bangun pagi dan berolahraga”)
+	+ Spirit_Status Iraj <= 0 (Tampilkan Pesan “Iraj ikut tidur, dan bangun kesiangan bersama Agmal”)
 - Syarat Menggunakan Lebih dari 1 Thread
+
+Langkah-langkah :<br>
+- 
 
 4. Buatlah sebuah program C dimana dapat menyimpan list proses yang sedang berjalan (ps -aux) maksimal 10 list proses. Dimana awalnya list proses disimpan dalam di 2 file ekstensi .txt yaitu  SimpanProses1.txt di direktori /home/Document/FolderProses1 dan SimpanProses2.txt di direktori /home/Document/FolderProses2 , setelah itu masing2 file di  kompres zip dengan format nama file KompresProses1.zip dan KompresProses2.zip dan file SimpanProses1.txt dan SimpanProses2.txt akan otomatis terhapus, setelah itu program akan menunggu selama 15 detik lalu program akan mengekstrak kembali file KompresProses1.zip dan KompresProses2.zip <br>
 Dengan Syarat : <br>
@@ -122,6 +126,79 @@ Dengan Syarat : <br>
 - Ketika Telah Selesai melakukan kompress file .zip masing-masing file, maka program akan memberi pesan “Menunggu 15 detik untuk mengekstrak kembali”
 - Wajib Menggunakan Multithreading
 - Boleh menggunakan system
+
+Langkah-langkah :<br>
+- Mengalokasikan array of thread sebesar 2, untuk masing2 proses
+```c
+pthread_t tid1[2];
+pthread_t tid2[2];
+pthread_t tid3[2];
+```
+- Create thread untuk simpan proses terlebih dahulu, lalu dijoinkan
+```c
+pthread_create(&tid1[0], NULL, simpan_proses1, NULL);
+pthread_create(&tid1[1], NULL, simpan_proses2, NULL);
+pthread_join(tid1[0], NULL);
+pthread_join(tid1[1], NULL);
+```
+Untuk mendapatkan list proses, maka ps -aux. Untuk mendapatkan 10 proses saja, maka menggunakan head -n 11. tail -n 10 diperlukan untuk mendapatkan list proses saja, tanpa header. Kemudian disimpan ke direktori yang diinginkan. Fungsi simpan_proses adalah sebagai berikut
+```c
+void* simpan_proses1(void *arg)
+{
+	system("ps -aux | head -n 11 | tail -n 10 > /home/maya/Documents/FolderProses1/SimpanProses1.txt");
+}
+
+void* simpan_proses2(void *arg)
+{
+	system("ps -aux | head -n 11 | tail -n 10 > /home/maya/Documents/FolderProses2/SimpanProses2.txt");
+}
+```
+- Create thread untuk mengompres file terlebih dahulu, lalu dijoinkan
+```c
+pthread_create(&tid2[0], NULL, kompres1, NULL);
+pthread_create(&tid2[1], NULL, kompres2, NULL);
+pthread_join(tid2[0], NULL);
+pthread_join(tid2[1], NULL);
+```
+Supaya setelah mengompres file tersebut dihapus, maka kami menggunakan opsi -mj
+```c
+void *kompres1(void *arg)
+{
+	system("zip -mj /home/maya/Documents/FolderProses1/KompresProses1.zip /home/maya/Documents/FolderProses1/SimpanProses1.txt");
+	status = 1;
+}
+
+void *kompres2(void *arg)
+{
+	system("zip -mj /home/maya/Documents/FolderProses2/KompresProses2.zip /home/maya/Documents/FolderProses2/SimpanProses2.txt");
+	status = 1;
+}
+```
+- Ketika proses kompres selesai, menampilkan pesan menunggu dan sleep sistem selama 15 detik. Untuk mengetahui status bahwa kompres selesai, kami menggunakan variabel global status, yang akan bernilai 1 ketika kompres selesai
+```c
+while(status!=1) {}
+printf("Menunggu 15 detik untuk mengekstrak kembali\n");
+sleep(15);
+```
+- Create thread untuk mengekstrak terlebih dahulu, lalu dijoinkan
+```c
+pthread_create(&tid3[0], NULL, ekstrak1, NULL);
+pthread_create(&tid3[1], NULL, ekstrak2, NULL);
+pthread_join(tid3[0], NULL);
+pthread_join(tid3[1], NULL);
+```
+dengan fungsi ekstrak sebagai berikut
+```c
+void * ekstrak1(void *arg)
+{
+	system("unzip /home/maya/Documents/FolderProses1/KompresProses1.zip -d /home/maya/Documents/FolderProses1");
+}
+
+void * ekstrak2(void *arg)
+{
+	system("unzip /home/maya/Documents/FolderProses2/KompresProses2.zip -d /home/maya/Documents/FolderProses2");
+}
+```
 
 5. Angga, adik Jiwang akan berulang tahun yang ke sembilan pada tanggal 6 April besok. Karena lupa menabung, Jiwang tidak mempunyai uang sepeserpun untuk membelikan Angga kado. Kamu sebagai sahabat Jiwang ingin membantu Jiwang membahagiakan adiknya sehingga kamu menawarkan bantuan membuatkan permainan komputer sederhana menggunakan program C. Jiwang sangat menyukai idemu tersebut. Berikut permainan yang Jiwang minta.<br>
 a. Pemain memelihara seekor monster lucu dalam permainan. Pemain dapat  memberi nama pada monsternya.<br>

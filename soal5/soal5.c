@@ -39,7 +39,7 @@ void showstandby(){
     printf("Hygiene : %d\n",hygiene);
     printf("Food left : %d\n",foodstock);
     printf("Bath will be ready in %ds\n",bathtime);
-    printf("Choices\n1. Eat\n2. Bath\n3. Battle\n4. Shop\n5. Exit\n6. Refresh\n");
+    printf("Choices\n1. Eat\n2. Bath\n3. Battle\n4. Shop\n5. Exit\n");
 }
 void showbattle(){
     printf("Battle Mode\n");
@@ -57,37 +57,51 @@ void showshop(int sstock){
 }
 void* regenHealth(void* arg){
 while(1){
+    sleep(10);
     if(battle == 1){
     }
     else {
         health+=5;
+	system("clear");
+	showstandby();
     }
-    sleep(10);
+
 }
 }
 void* reduceHygiene(void* arg){
 while(1){
+    sleep(30);
+
     if(battle == 1){
     }
     else {
         hygiene-=10;
+	system("clear");
+	showstandby();
+	if(hygiene == 0){
+		system("clear");
+		printf("Hygiene level is 0, you lose this game.\n");
+		abort();
+	}
     }
-    sleep(30);
 }
 }
 void* reduceHunger(void* arg){
 while(1){
+    sleep(10);
+
     if(battle == 1){
     }
     else {
         hunger-=5;
+//	system("clear");
+//	showstandby();
         if(hunger == 0){
             system("clear");
             printf("Monster's hunger level is 0, you lose this game.\n");
-            exit(0);
+            abort();
         }
     }
-    sleep(10);
 }
 }
 void* bathCD(void* arg){
@@ -125,6 +139,14 @@ while(1){
     key = getch();
     k = key;
     if(k == 49){
+	if(hunger>=200){
+	    system("clear");
+	    printf("Your hunger level is max!\n");
+	    sleep(1);
+	    system("clear");
+	    showstandby();
+	}
+	else{
         if(foodstock>0){
             foodstock -=1;
             hunger+=15;
@@ -137,7 +159,7 @@ while(1){
             sleep(1);
             system("clear");
             showstandby();
-        }
+        }}
     }
     else if(k == 50){
         if(bathstatus == 0){
@@ -216,10 +238,6 @@ while(1){
     }
     else if(k == 53){
         break;
-    }
-    else if(k == 54){
-        system("clear");
-        showstandby();
     }
 
 }

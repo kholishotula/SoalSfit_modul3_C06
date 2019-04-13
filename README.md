@@ -435,77 +435,118 @@ G. Pastikan terminal hanya mendisplay status detik ini sesuai scene terkait (hin
 Jawab : untuk melakukan pengurangan / penambahan status hunger, hygiene, health gunakan thread :
 ```c
 void* regenHealth(void* arg){
+
 while(1){
+
+    sleep(10);
+
     if(battle == 1){
+
     }
+
     else {
+
         health+=5;
+
+	system("clear");
+
+	showstandby();
+
     }
-    sleep(10);
+
+
+
 }
+
 }
+
 void* reduceHygiene(void* arg){
+
 while(1){
-    if(battle == 1){
-    }
-    else {
-        hygiene-=10;
-    }
+
     sleep(30);
-}
-}
-void* reduceHunger(void* arg){
-while(1){
+
+
+
     if(battle == 1){
+
     }
+
     else {
-        hunger-=5;
-        if(hunger == 0){
-            system("clear");
-            printf("Monster's hunger level is 0, you lose this game.\n");
-            exit(0);
-        }
+
+        hygiene-=10;
+
+	system("clear");
+
+	showstandby();
+
+	if(hygiene == 0){
+
+		system("clear");
+
+		printf("Hygiene level is 0, you lose this game.\n");
+
+		abort();
+
+	}
+
     }
-    sleep(10);
+
 }
+
+}
+
+void* reduceHunger(void* arg){
+
+while(1){
+
+    sleep(10);
+
+
+
+    if(battle == 1){
+
+    }
+
+    else {
+
+        hunger-=5;
+
+//	system("clear");
+
+//	showstandby();
+
+        if(hunger == 0){
+
+            system("clear");
+
+            printf("Monster's hunger level is 0, you lose this game.\n");
+
+            abort();
+
+        }
+
+    }
+
+}
+
 }
 ```
 -lalu untuk menghitung cooldown bath gunakan thread juga :
-```c
-void* bathCD(void* arg){
-while(1){
-    if(bathstatus==1){
-        bathtime--;
-        if(bathtime == 0)
-        bathstatus = 0;
-    }
-    sleep(1);
-}
-}
-```
--setting semua variable lalu jalankan threadnya pada fungsi main() :
-```c
-pthread_t t1,t2,t3,t4;
-hunger = 200;
-hygiene = 100;
-health = 30;
-foodstock = 5;
-bathtime = 20; bathstatus = 0; *shopstock = 10;
-```
--khusus untuk variable shopstock, yaitu jumlah stok makanan pada shop, gunakan shared memory :
-```c
-key_t key = 4321;
-int *shopstock;
-int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
-shopstock = shmat(shmid, NULL, 0);
-```
--looping utama untuk menjalankan program/ kita inputkan pilihan
 ```c
 while(1){
     char key; int k;
     key = getch();
     k = key;
     if(k == 49){
+	if(hunger>=200){
+	    system("clear");
+	    printf("Your hunger level is max!\n");
+	    sleep(1);
+	    system("clear");
+	    showstandby();
+	}
+	else{
         if(foodstock>0){
             foodstock -=1;
             hunger+=15;
@@ -518,7 +559,7 @@ while(1){
             sleep(1);
             system("clear");
             showstandby();
-        }
+        }}
     }
     else if(k == 50){
         if(bathstatus == 0){
@@ -597,10 +638,6 @@ while(1){
     }
     else if(k == 53){
         break;
-    }
-    else if(k == 54){
-        system("clear");
-        showstandby();
     }
 
 }

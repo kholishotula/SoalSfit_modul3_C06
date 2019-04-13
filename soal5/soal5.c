@@ -125,7 +125,7 @@ shopstock = shmat(shmid, NULL, 0);
 pthread_t t1,t2,t3,t4;
 hunger = 200;
 hygiene = 100;
-health = 30;
+health = 300;
 foodstock = 5;
 bathtime = 20; bathstatus = 0; *shopstock = 10;
 system("clear");
